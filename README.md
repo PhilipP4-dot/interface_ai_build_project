@@ -41,9 +41,9 @@ To support another provider, implement the discovery decider contract (`decide(g
 
 ## Run a workflow
 
-Select a saved workflow to generate its required input fields. Nothing is selected initially; switching workflows clears previous inputs. The included lookup accepts five-digit member IDs: `12345` and `67890` have accounts; `99999` returns a normal not-found outcome.
+Select a saved workflow to generate its required input fields. Nothing is selected initially; switching workflows clears previous inputs. Use **Rename workflow** to give a saved workflow a recognizable name. Names persist locally in ignored dashboard storage. The included lookup accepts five-digit member IDs: `12345` and `67890` have accounts; `99999` returns a normal not-found outcome.
 
-Click **Use demo site** to select the dashboard's bundled demo, or paste a running local demo URL such as `http://127.0.0.1:8765`. A blank URL starts a fresh demo for the run. Only an unchanged copy of the bundled page is accepted, not arbitrary websites. `localhost` is normalized to loopback.
+Expand **Demo settings**, then click **Use demo site** to select the dashboard's bundled demo, or paste a running local demo URL such as `http://127.0.0.1:8765`. A blank URL starts a fresh demo for the run. Only an unchanged copy of the bundled page is accepted, not arbitrary websites. `localhost` is normalized to loopback.
 
 A separate automation browser opens. The dashboard shows progress, results, masked failure screenshots, event downloads, and completed-run history.
 

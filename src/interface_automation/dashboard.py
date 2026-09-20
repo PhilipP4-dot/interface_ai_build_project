@@ -133,6 +133,12 @@ class Dashboard:
 
     def snapshot(self) -> dict[str, Any]:
         workflows = []
+        try:
+            names = json.loads((self.directory / "workflow-names.json").read_text(encoding="utf-8"))
+            if not isinstance(names, dict):
+                names = {}
+        except (OSError, ValueError):
+            names = {}
         items = list(self.workflows().items())
         items.sort(key=lambda item: (self.root / item[0]).stat().st_mtime)
         for number, (key, value) in enumerate(items, 1):
@@ -155,7 +161,7 @@ class Dashboard:
             workflows.append(
                 {
                     "id": key,
-                    "name": f"Savings lookup {number:02d}",
+                    "name": names.get(key, f"Savings lookup {number:02d}"),
                     "description": description,
                     "source": source,
                     "created": created,
@@ -214,6 +220,7 @@ class Dashboard:
                 "events": [],
                 "created": datetime.now(UTC).isoformat(),
                 "scenario": request.scenario,
+                "workflow": request.workflow if request.mode == "replay" else "",
                 "review_before_save": goal_first,
             }
             self.runs[run_id] = run
@@ -241,6 +248,22 @@ class Dashboard:
         Thread(
             target=self.execute, args=(request, None, run, self.directory / run_id), daemon=True
         ).start()
+
+    def rename(self, workflow: str, name: str) -> None:
+        name = name.strip()
+        if (
+            workflow not in self.workflows()
+            or not 1 <= len(name) <= 80
+            or any(ord(c) < 32 for c in name)
+        ):
+            raise ValueError("Choose a saved workflow and a name of 1 to 80 characters")
+        with self.lock:
+            path = self.directory / "workflow-names.json"
+            names = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+            names[workflow] = name
+            temporary = path.with_suffix(".tmp")
+            temporary.write_text(json.dumps(names, indent=2), encoding="utf-8")
+            temporary.replace(path)
 
     def review(self, run_id: str, save: bool) -> None:
         with self.lock:
@@ -427,6 +450,7 @@ def make_server(root: Path, port: int = 8766) -> ThreadingHTTPServer:
                 "/api/answer",
                 "/api/review",
                 "/api/cancel-input",
+                "/api/rename",
             }:
                 self.send_body(403, b'{"error":"Request rejected."}')
                 return
@@ -435,6 +459,17 @@ def make_server(root: Path, port: int = 8766) -> ThreadingHTTPServer:
                 if not 0 < length <= 4096:
                     raise ValueError("Invalid request size.")
                 body = self.rfile.read(length)
+                if self.path == "/api/rename":
+                    data = json.loads(body)
+                    if (
+                        not isinstance(data, dict)
+                        or not isinstance(data.get("workflow"), str)
+                        or not isinstance(data.get("name"), str)
+                    ):
+                        raise ValueError("Invalid workflow name")
+                    manager.rename(data["workflow"], data["name"])
+                    self.send_body(200, b"{}")
+                    return
                 if self.path in {"/api/answer", "/api/review", "/api/cancel-input"}:
                     data = json.loads(body)
                     if not isinstance(data, dict) or not isinstance(data.get("id"), str):

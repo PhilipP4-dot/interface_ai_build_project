@@ -5,6 +5,7 @@ body{font:16px Georgia,serif;background:#edf1f2;color:#183238;margin:0}
 header{background:#173f48;color:white;padding:24px 8%}main{margin:36px auto;max-width:760px;background:white;padding:32px;border:1px solid #bbc9cc}
 table{border-collapse:collapse;width:100%;margin:24px 0}td,th{border:1px solid #bbc9cc;padding:14px;text-align:left}
 button,input{font:inherit;padding:10px}button{background:#173f48;color:white;border:0;cursor:pointer}a{color:#135f77}small{display:block;margin-top:20px;color:#52686e}
+.checkpoint{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 </style>
 <header><h1>Sample Credit Union</h1>Staff workstation · synthetic training data only</header>
 <main><h2>Member search</h2><form><label>Member ID <input name="member" maxlength="5" autocomplete="off"></label> <button>Search</button></form>
@@ -17,7 +18,7 @@ const members={'12345':['Alex Example','1250.75'],'67890':['Sam Sample','842.10'
 const balancePattern=/^(?:0|[1-9][0-9]{0,8})(?:\.[0-9]{1,2})?$/;
 try{const saved=JSON.parse(sessionStorage.getItem('demoBalances')||'{}');for(const id of Object.keys(members)){if(typeof saved[id]==='string'&&balancePattern.test(saved[id]))members[id][1]=saved[id]}}catch{}
 function showAccounts(id){
- content.innerHTML='<h2>Account details</h2><table><tr><th>Account</th><th>Balance (USD)</th></tr><tr><td>Savings</td><td role="status" aria-label="Savings balance"></td></tr></table><p>Account details loaded</p><form id="balanceForm" novalidate><h3>Reassign savings balance</h3><label for="newBalance">New savings balance (USD)</label> <input id="newBalance" name="balance" inputmode="decimal" autocomplete="off" required> <button type="submit">Update savings balance</button><p role="status" aria-label="Balance update" id="balanceMessage"></p><small>Changes are synthetic and stay in this browser tab, including after refresh.</small></form>';
+ content.innerHTML='<h2>Account details</h2><table><tr><th>Account</th><th>Balance (USD)</th></tr><tr><td>Savings</td><td role="status" aria-label="Savings balance"></td></tr></table><p class="checkpoint">Account details loaded</p><form id="balanceForm" novalidate><h3>Change savings balance</h3><label for="newBalance">New savings balance (USD)</label> <input id="newBalance" name="balance" inputmode="decimal" autocomplete="off" required> <button type="submit">Update savings balance</button><p role="status" aria-label="Balance update" id="balanceMessage"></p><small>Changes are synthetic and stay in this browser tab, including after refresh.</small></form>';
  content.querySelector('[aria-label="Savings balance"]').textContent=members[id][1];
  const form=content.querySelector('#balanceForm');
  form.onsubmit=event=>{

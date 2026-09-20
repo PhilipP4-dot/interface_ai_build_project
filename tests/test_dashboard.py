@@ -74,6 +74,7 @@ def test_dashboard_browser_replay_and_history(tmp_path: Path) -> None:
             assert page.locator("#targetSettings").is_hidden()
             assert page.locator("#start").is_disabled()
             page.locator("#workflow").select_option("artifacts/sample.json")
+            page.get_by_text("Demo settings", exact=True).click()
             page.get_by_role("button", name="Use demo site", exact=True).click()
             assert page.locator("#targetUrl").input_value().startswith("http://127.0.0.1:")
             page.locator("#member").fill("67890")
@@ -301,3 +302,12 @@ def test_member_from_goal(goal, expected):
     from interface_automation.dashboard import member_from_goal
 
     assert member_from_goal(goal) == expected
+
+
+def test_workflow_names_persist_and_reject_unknown_paths(tmp_path):
+    manager = Dashboard(fixture_root(tmp_path))
+    manager.rename("artifacts/sample.json", "Account balance lookup")
+    assert Dashboard(tmp_path).snapshot()["workflows"][0]["name"] == "Account balance lookup"
+    for workflow, name in [("../../.env", "Bad"), ("artifacts/sample.json", " ")]:
+        with pytest.raises(ValueError):
+            manager.rename(workflow, name)
