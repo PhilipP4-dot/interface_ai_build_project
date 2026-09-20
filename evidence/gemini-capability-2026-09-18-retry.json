@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0",
+  "name": "savings_balance",
+  "provenance": "llm_discovery",
+  "input_type": "member_id: five-digit string",
+  "output_type": "balance: USD decimal string",
+  "steps": [
+    {
+      "action": "fill",
+      "role": "textbox",
+      "name": "Member ID",
+      "parameter": "member_id",
+      "output": null
+    },
+    {
+      "action": "click",
+      "role": "button",
+      "name": "Search",
+      "parameter": null,
+      "output": null
+    },
+    {
+      "action": "click",
+      "role": "link",
+      "name": "View accounts",
+      "parameter": null,
+      "output": null
+    },
+    {
+      "action": "read",
+      "role": "status",
+      "name": "Savings balance",
+      "parameter": null,
+      "output": "balance"
+    }
+  ],
+  "checkpoint": "Account details loaded"
+}

@@ -1,0 +1,5 @@
+{
+  "allowed_hosts": ["127.0.0.1"],
+  "allowed_paths": ["/"],
+  "allowed_actions": ["fill_member", "search", "open_accounts", "read_balance"]
+}

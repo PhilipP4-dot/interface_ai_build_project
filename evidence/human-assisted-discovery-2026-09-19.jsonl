@@ -1,0 +1,16 @@
+{"event": "api_response", "provider": "gemini", "model": "gemini-2.5-flash", "response_id": "_B6vasaoBNT5jrEPlMKlgAo", "input_tokens": 198, "output_tokens": 8, "thinking_tokens": 0}
+{"event": "decision", "action": "fill_member", "observation": "{\"visible_controls\": [\"fill_member\", \"search\"], \"available_actions\": [\"fill_member\", \"search\"], \"member_input_present\": false, \"member_input_matches_parameter\": false, \"balance_extracted\": false, \"checkpoint_visible\": false, \"recent_actions\": []}"}
+{"event": "action", "action": "fill", "control": "Member ID"}
+{"event": "api_response", "provider": "gemini", "model": "gemini-2.5-flash", "response_id": "Cx-vasmUApzTjMcPvaq7yQE", "input_tokens": 201, "output_tokens": 6, "thinking_tokens": 0}
+{"event": "decision", "action": "search", "observation": "{\"visible_controls\": [\"fill_member\", \"search\"], \"available_actions\": [\"fill_member\", \"search\"], \"member_input_present\": true, \"member_input_matches_parameter\": true, \"balance_extracted\": false, \"checkpoint_visible\": false, \"recent_actions\": [\"fill_member\"]}"}
+{"event": "action", "action": "click", "control": "Search"}
+{"event": "intervention", "reason": "operator_review", "owner": "human", "operator_mode": "manual", "capability": "savings_balance", "step": 2, "mode": "discovery", "state": "Resolve the blocked lookup and leave results or account details for the original member"}
+{"event": "human_action", "kind": "click", "control": "Continue review"}
+{"event": "human_action", "kind": "click", "control": "View accounts"}
+{"event": "human_action", "kind": "click", "control": "Resume automation"}
+{"event": "recovery_learned", "trigger": "operator_review", "action": "continue_review"}
+{"event": "resumed", "owner": "automation"}
+{"event": "api_response", "provider": "gemini", "model": "gemini-2.5-flash", "response_id": "Hx-vasWyCtuf-8YPioqvmQo", "input_tokens": 214, "output_tokens": 8, "thinking_tokens": 0}
+{"event": "decision", "action": "read_balance", "observation": "{\"visible_controls\": [\"fill_member\", \"search\", \"read_balance\"], \"available_actions\": [\"fill_member\", \"search\", \"read_balance\"], \"member_input_present\": true, \"member_input_matches_parameter\": true, \"balance_extracted\": false, \"checkpoint_visible\": true, \"recent_actions\": [\"fill_member\", \"search\"]}"}
+{"event": "action", "action": "read", "control": "Savings balance"}
+{"event": "result", "status": "success", "code": "completed", "step": null, "expected": null, "observed": null}

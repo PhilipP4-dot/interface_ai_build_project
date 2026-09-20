@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0",
+  "name": "savings_balance",
+  "provenance": "hand_authored_fixture",
+  "input_type": "member_id: five-digit string",
+  "output_type": "balance: USD decimal string",
+  "steps": [
+    {"action": "fill", "role": "textbox", "name": "Member ID", "parameter": "member_id"},
+    {"action": "click", "role": "button", "name": "Search"},
+    {"action": "click", "role": "link", "name": "View accounts"},
+    {"action": "read", "role": "status", "name": "Savings balance", "output": "balance"}
+  ],
+  "checkpoint": "Account details loaded"
+}

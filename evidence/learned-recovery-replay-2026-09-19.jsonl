@@ -1,0 +1,6 @@
+{"event": "action", "action": "fill", "control": "Member ID"}
+{"event": "action", "action": "click", "control": "Search"}
+{"event": "recovery_replayed", "trigger": "operator_review", "action": "continue_review"}
+{"event": "action", "action": "click", "control": "View accounts"}
+{"event": "action", "action": "read", "control": "Savings balance"}
+{"event": "result", "status": "success", "code": "completed", "step": null, "expected": null, "observed": null}
