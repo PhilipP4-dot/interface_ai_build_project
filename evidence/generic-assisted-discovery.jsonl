@@ -1,0 +1,55 @@
+{"event": "page_run_started", "target_origin": "https://www.ngpf.org"}
+{"event": "network_blocked", "origin": "https://www.googletagmanager.com", "resource_type": "script", "reason": "cross_origin_resource", "fatal": false}
+{"event": "page_landed", "target_origin": "https://www.ngpf.org", "redirected": false}
+{"event": "waiting_for_controls", "step": 1, "timeout_seconds": 8.0}
+{"event": "network_blocked", "origin": "https://fonts.gstatic.com", "resource_type": "font", "reason": "cross_origin_resource", "fatal": false}
+{"event": "page_observed", "step": 1, "observed_control_count": 1, "offered_control_count": 1}
+{"event": "api_response", "provider": "gemini", "model": "gemini-3.5-flash", "response_id": "kG6zavepBJjHsOIP5PK7qQI", "input_tokens": 521, "output_tokens": 25, "thinking_tokens": 56}
+{"event": "page_decision", "step": 1, "action": "click", "target": "c0", "observed_control_count": 1, "offered_control_count": 1}
+{"event": "screen_checked", "changed": true}
+{"event": "action", "action": "click", "control": "GET STARTED NOW"}
+{"event": "navigation_checked", "step": 1, "page_changed": true}
+{"event": "page_observed", "step": 2, "observed_control_count": 3, "offered_control_count": 3}
+{"event": "api_response", "provider": "gemini", "model": "gemini-3.5-flash", "response_id": "qW6zapa_Gr7VjMcPt56wuAY", "input_tokens": 617, "output_tokens": 25, "thinking_tokens": 0}
+{"event": "page_decision", "step": 2, "action": "click", "target": "c2", "observed_control_count": 3, "offered_control_count": 3}
+{"event": "screen_checked", "changed": true}
+{"event": "action", "action": "click", "control": "Ok"}
+{"event": "navigation_checked", "step": 2, "page_changed": false}
+{"event": "page_observed", "step": 3, "observed_control_count": 15, "offered_control_count": 15}
+{"event": "api_response", "provider": "gemini", "model": "gemini-3.5-flash", "response_id": "uG6zatrzGqejjMcP_djKuQ8", "input_tokens": 843, "output_tokens": 25, "thinking_tokens": 62}
+{"event": "page_decision", "step": 3, "action": "click", "target": "c5", "observed_control_count": 15, "offered_control_count": 15}
+{"event": "screen_checked", "changed": true}
+{"event": "action", "action": "click", "control": "TRANSFERS expand_more"}
+{"event": "navigation_checked", "step": 3, "page_changed": false}
+{"event": "page_observed", "step": 4, "observed_control_count": 17, "offered_control_count": 17}
+{"event": "api_error", "provider": "gemini", "http_status": 503}
+{"event": "intervention", "reason": "gemini_http_503", "owner": "human", "timeout_seconds": 300.0}
+{"event": "human_action", "kind": "click"}
+{"event": "resumed", "owner": "automation"}
+{"event": "page_observed", "step": 5, "observed_control_count": 20, "offered_control_count": 20}
+{"event": "api_response", "provider": "gemini", "model": "gemini-3.5-flash", "response_id": "126zaqm3E6HrjrEP8cOG-QM", "input_tokens": 1207, "output_tokens": 138, "thinking_tokens": 0}
+{"event": "page_decision", "step": 5, "action": "fill", "target": "c14", "observed_control_count": 20, "offered_control_count": 20}
+{"event": "action", "action": "fill", "control": "PAYMENT FREQUENCY *"}
+{"event": "page_observed", "step": 6, "observed_control_count": 20, "offered_control_count": 20}
+{"event": "page_decision", "step": 6, "action": "fill", "target": "c15", "observed_control_count": 20, "offered_control_count": 20}
+{"event": "action", "action": "fill", "control": "Transfer From *"}
+{"event": "page_observed", "step": 7, "observed_control_count": 20, "offered_control_count": 20}
+{"event": "page_decision", "step": 7, "action": "fill", "target": "c16", "observed_control_count": 20, "offered_control_count": 20}
+{"event": "action", "action": "fill", "control": "Transfer To *"}
+{"event": "page_observed", "step": 8, "observed_control_count": 20, "offered_control_count": 20}
+{"event": "page_decision", "step": 8, "action": "fill", "target": "c17", "observed_control_count": 20, "offered_control_count": 20}
+{"event": "action", "action": "fill", "control": "Amount *"}
+{"event": "page_observed", "step": 9, "observed_control_count": 21, "offered_control_count": 21}
+{"event": "api_response", "provider": "gemini", "model": "gemini-3.5-flash", "response_id": "6G6zarqcPOncjMcPnPe9qQM", "input_tokens": 1225, "output_tokens": 36, "thinking_tokens": 0}
+{"event": "page_decision", "step": 9, "action": "click", "target": "c19", "observed_control_count": 21, "offered_control_count": 21}
+{"event": "screen_checked", "changed": true}
+{"event": "action", "action": "click", "control": "Save"}
+{"event": "navigation_checked", "step": 9, "page_changed": true}
+{"event": "page_observed", "step": 10, "observed_control_count": 24, "offered_control_count": 4}
+{"event": "api_response", "provider": "gemini", "model": "gemini-3.5-flash", "response_id": "926zarHBONHTjMcPm53oiAc", "input_tokens": 785, "output_tokens": 26, "thinking_tokens": 173}
+{"event": "page_decision", "step": 10, "action": "read", "target": "c22", "observed_control_count": 24, "offered_control_count": 4}
+{"event": "action", "action": "read", "control": "Result row"}
+{"event": "api_response", "provider": "gemini", "model": "gemini-3.5-flash", "response_id": "Bm-zaqbhOqml_PUPhOmzqQs", "input_tokens": 456, "output_tokens": 14, "thinking_tokens": 157}
+{"event": "goal_checked", "outcome": "achieved", "requires_change": true}
+{"event": "capability_not_saved", "reason": "unrecorded_human_repair"}
+{"event": "result", "status": "success", "code": "completed", "step": null, "expected": null, "observed": null}

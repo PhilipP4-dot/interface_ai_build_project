@@ -1,0 +1,3 @@
+{"event": "action", "action": "fill", "control": "Member ID"}
+{"event": "failure_screenshot", "redaction": "synthetic_data_regions_masked"}
+{"event": "result", "status": "failure", "code": "permission_denied", "step": 2, "expected": "Member search result", "observed": "Permission denied"}

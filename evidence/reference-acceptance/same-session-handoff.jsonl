@@ -1,0 +1,11 @@
+{"event": "action", "action": "fill", "control": "Member ID"}
+{"event": "action", "action": "click", "control": "Search"}
+{"event": "intervention", "reason": "operator_review", "owner": "human", "operator_mode": "simulated", "capability": "savings_balance", "step": 2, "mode": "replay", "state": "Resolve the blocked lookup and leave results or account details for the original member"}
+{"event": "human_action", "kind": "click", "control": "Continue review"}
+{"event": "human_action", "kind": "click", "control": "Resume automation"}
+{"event": "recovery_learned", "trigger": "operator_review", "action": "continue_review"}
+{"event": "resumed", "owner": "automation"}
+{"event": "action", "action": "click", "control": "View accounts"}
+{"event": "action", "action": "read", "control": "Savings balance"}
+{"event": "capability_updated", "reason": "verified_human_recovery"}
+{"event": "result", "status": "success", "code": "completed", "step": null, "expected": null, "observed": null}

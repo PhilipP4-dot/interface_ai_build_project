@@ -1,4 +1,4 @@
-"""Configuration can narrow the demo surface's fixed read-only safety boundary."""
+"""Configuration can narrow the demo surface's supported synthetic action boundary (read-only by default)."""
 
 from typing import Literal
 from urllib.parse import urlsplit
@@ -7,7 +7,9 @@ from pydantic import Field
 
 from .schema import Contract
 
-ActionName = Literal["fill_member", "search", "open_accounts", "read_balance"]
+ActionName = Literal[
+    "fill_member", "search", "open_accounts", "read_balance", "fill_balance", "update_balance"
+]
 
 
 def default_actions() -> list[ActionName]:

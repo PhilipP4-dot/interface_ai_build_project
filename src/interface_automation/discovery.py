@@ -10,11 +10,19 @@ from playwright.sync_api import Error, Page, sync_playwright
 
 from .policy import Policy
 from .schema import Capability, Contract, Inputs, Result, Step
-from .surface import CHECKPOINT, STEPS, Stopped, Surface
+from .surface import CHECKPOINT, Stopped, Surface
 
 
 class Decision(Contract):
-    action: Literal["fill_member", "search", "open_accounts", "read_balance", "finish"]
+    action: Literal[
+        "fill_member",
+        "search",
+        "open_accounts",
+        "read_balance",
+        "fill_balance",
+        "update_balance",
+        "finish",
+    ]
 
 
 class Decider(Protocol):
@@ -107,19 +115,25 @@ def discover(
                         )
                         return result, None
                     capability = Capability(
-                        schema_version="1.1" if assisted else "1.0",
-                        name="savings_balance",
+                        schema_version="1.2"
+                        if surface.updating
+                        else ("1.1" if assisted else "1.0"),
+                        name="update_savings_balance" if surface.updating else "savings_balance",
                         provenance="human_assisted_discovery"
                         if assisted and decider.provenance != "offline_test"
                         else decider.provenance,
-                        input_type="member_id: five-digit string",
+                        input_type="member_id: five-digit string; new_balance: USD decimal string"
+                        if surface.updating
+                        else "member_id: five-digit string",
                         output_type="balance: USD decimal string",
-                        steps=list(STEPS.values()) if assisted else steps,
+                        steps=list(surface.catalog.values()) if assisted else steps,
                         recoveries=surface.learned,
                         checkpoint=CHECKPOINT,
                     )
                     return result, capability
-                step = STEPS[decision.action].model_copy()
+                if decision.action not in surface.catalog:
+                    raise Stopped(Result(status="failure", code="action_blocked"))
+                step = surface.catalog[decision.action].model_copy()
                 try:
                     surface.act(step)
                 except (Error, Stopped) as blocked:
@@ -148,14 +162,20 @@ def discover(
                             )
                             return result, None
                         return result, Capability(
-                            schema_version="1.1" if assisted else "1.0",
-                            name="savings_balance",
+                            schema_version="1.2"
+                            if surface.updating
+                            else ("1.1" if assisted else "1.0"),
+                            name="update_savings_balance"
+                            if surface.updating
+                            else "savings_balance",
                             provenance="human_assisted_discovery"
                             if assisted and decider.provenance != "offline_test"
                             else decider.provenance,
-                            input_type="member_id: five-digit string",
+                            input_type="member_id: five-digit string; new_balance: USD decimal string"
+                            if surface.updating
+                            else "member_id: five-digit string",
                             output_type="balance: USD decimal string",
-                            steps=list(STEPS.values()) if assisted else steps,
+                            steps=list(surface.catalog.values()) if assisted else steps,
                             recoveries=surface.learned,
                             checkpoint=CHECKPOINT,
                         )

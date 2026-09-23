@@ -1,7 +1,10 @@
-# Capability fixture
+# Workflow examples
 
-`savings_balance.json` is a hand-authored replay fixture, not a discovery recording. It contains parameter references, not customer values. Genuine discovery artifacts and their provenance are indexed in [the evidence guide](../evidence/README.md).
+| File | Inputs and behavior | Provenance |
+| --- | --- | --- |
+| `savings_balance.json` | Member ID; read and verify the savings balance. | Hand-authored fixture |
+| `update_savings_balance.json` | Member ID and new balance; update the synthetic demo without confirmation and verify the read-back. | Hand-authored schema 1.2 fixture |
 
-Dashboard-created workflows are stored in ignored `runs/dashboard/`. To share one, review its contents and copy only its `capability.json` to this directory with a descriptive filename.
+Use the [evidence guide](../evidence/README.md) for model-discovered artifacts and their source logs. Keep that evidence in the assignment submission. You can replay these hand-authored examples without it or an API key.
 
-Workflow artifacts are executable inputs; evidence logs are optional records supporting claims about their creation and behavior. This fixture works without the `evidence/` folder or an API key. For a compact public demonstration, see the six-file [included evidence set](../evidence/README.md#included-demonstration-set).
+Find dashboard-created workflows in ignored `runs/dashboard/`. To share one, inspect its `capability.json` for sensitive data, then copy it here with a descriptive filename. Schema 2.0 artifacts include a target URL and page metadata and require dashboard replay. Keep external targets reachable; for bundled-demo workflows, the dashboard can supply its current demo instance.

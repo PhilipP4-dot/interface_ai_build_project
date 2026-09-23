@@ -8,6 +8,7 @@ from threading import Event
 from pydantic import ValidationError
 
 from .demo import serve
+from .gemini import DEFAULT_GEMINI_MODEL
 from .policy import Policy
 from .replay import replay
 from .schema import Capability, Inputs, Result
@@ -24,6 +25,7 @@ def main() -> int:
     run = commands.add_parser("replay", help="Replay fixture against a temporary local demo")
     run.add_argument("--artifact", type=Path, default=Path("artifacts/savings_balance.json"))
     run.add_argument("--member-id", required=True)
+    run.add_argument("--new-balance", help="New synthetic balance for an update workflow")
     run.add_argument(
         "--target",
         choices=["synthetic-bank"],
@@ -58,9 +60,12 @@ def main() -> int:
     )
     discovery.add_argument("--member-id", required=True)
     discovery.add_argument(
+        "--new-balance", help="Enable synthetic balance-update discovery with this amount"
+    )
+    discovery.add_argument(
         "--model",
-        default="gemini-2.5-flash",
-        choices=["gpt-5.4", "gemini-2.5-flash", "gemini-2.0-flash"],
+        default=DEFAULT_GEMINI_MODEL,
+        choices=[DEFAULT_GEMINI_MODEL, "gpt-5.4", "gemini-3.5-flash", "gemini-2.0-flash"],
     )
     discovery.add_argument("--live", action="store_true", help="Explicitly allow API quota use")
     discovery.add_argument("--headed", action="store_true")
@@ -96,7 +101,7 @@ def main() -> int:
         return run_discovery(args)
     try:
         capability = Capability.model_validate_json(args.artifact.read_text(encoding="utf-8"))
-        inputs = Inputs(member_id=args.member_id)
+        inputs = Inputs(member_id=args.member_id, new_balance=args.new_balance)
         policy = load_policy(args.policy)
     except (OSError, ValidationError):
         print(json.dumps({"status": "failure", "code": "invalid_artifact_or_input"}))
@@ -175,7 +180,7 @@ def run_discovery(args: argparse.Namespace) -> int:
         print(json.dumps({"status": "failure", "code": "choose_unused_output_paths"}))
         return 2
     try:
-        inputs = Inputs(member_id=args.member_id)
+        inputs = Inputs(member_id=args.member_id, new_balance=args.new_balance)
         policy = load_policy(args.policy)
         # Budget path is fixed to this repository, not user-selectable per run.
         root = Path(__file__).resolve().parents[2]

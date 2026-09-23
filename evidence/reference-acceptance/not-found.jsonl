@@ -1,0 +1,2 @@
+{"event": "action", "action": "fill", "control": "Member ID"}
+{"event": "result", "status": "business_outcome", "code": "member_not_found", "step": 2, "expected": "Member search result", "observed": "Member not found"}

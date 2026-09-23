@@ -74,7 +74,7 @@ def test_dashboard_browser_replay_and_history(tmp_path: Path) -> None:
             assert page.locator("#targetSettings").is_hidden()
             assert page.locator("#start").is_disabled()
             page.locator("#workflow").select_option("artifacts/sample.json")
-            page.get_by_text("Demo settings", exact=True).click()
+            page.get_by_text("Website and demo settings", exact=True).click()
             page.get_by_role("button", name="Use demo site", exact=True).click()
             assert page.locator("#targetUrl").input_value().startswith("http://127.0.0.1:")
             page.locator("#member").fill("67890")
@@ -91,11 +91,6 @@ def test_dashboard_browser_replay_and_history(tmp_path: Path) -> None:
             ).wait_for(timeout=30000)
             page.get_by_role("button", name="Create a workflow", exact=True).click()
             assert page.locator("#replayInputs").is_hidden()
-            page.locator("#live").check()
-            page.get_by_role("button", name="Discover and save workflow", exact=True).click()
-            page.locator("#inputQuestion").wait_for(state="visible")
-            page.get_by_role("button", name="Cancel", exact=True).click()
-            page.get_by_text("Cancelled", exact=True).wait_for()
 
             # Exercise the renderer contract with a different workflow's input metadata.
             def alternative_fields(route):
@@ -311,3 +306,78 @@ def test_workflow_names_persist_and_reject_unknown_paths(tmp_path):
     for workflow, name in [("../../.env", "Bad"), ("artifacts/sample.json", " ")]:
         with pytest.raises(ValueError):
             manager.rename(workflow, name)
+
+
+def test_dashboard_balance_update_inputs_and_discovery(tmp_path, monkeypatch):
+    from test_balance_update import UpdateDecider, artifact
+    from test_page_workflow import ScriptedDecider
+
+    class OfflineUpdate(UpdateDecider):
+        def __init__(self, *args):
+            super().__init__()
+            self.page_model = ScriptedDecider(
+                [
+                    ("fill", "Member ID", "67890"),
+                    ("click", "Search", None),
+                    ("click", "View accounts", None),
+                    ("fill", "New savings balance (USD)", "543.21"),
+                    ("click", "Update savings balance", None),
+                    ("read", "Savings balance", None),
+                ]
+            )
+
+        def structured(self, instructions, observation, contract):
+            return self.page_model.structured(instructions, observation, contract)
+
+    monkeypatch.setattr("interface_automation.dashboard.GeminiDecider", OfflineUpdate)
+    root = fixture_root(tmp_path)
+    (root / "artifacts/update.json").write_text(artifact().model_dump_json())
+    server = make_server(root, 0)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        with sync_playwright() as driver:
+            browser = driver.chromium.launch()
+            page = browser.new_page()
+            page.goto(f"http://127.0.0.1:{server.server_port}")
+            page.locator("#workflow option[value='artifacts/update.json']").wait_for(
+                state="attached"
+            )
+            page.locator("#workflow").select_option("artifacts/update.json")
+            assert page.locator("#replayInputs input").count() == 2
+            page.locator("#member").fill("12345")
+            page.locator("#new_balance").fill("432.10")
+            page.get_by_role("button", name="Run saved workflow", exact=True).click()
+            page.get_by_text("$432.10", exact=True).wait_for(timeout=30000)
+            page.get_by_role("button", name="Create a workflow", exact=True).click()
+            page.locator("#goal").fill("Set member 67890 savings balance to 543.21")
+            page.locator("#live").check()
+            page.get_by_role("button", name="Discover and save workflow", exact=True).click()
+            page.get_by_text("543.21", exact=True).wait_for(timeout=30000)
+            assert page.locator("#inputQuestion").is_hidden()
+            page.get_by_role("button", name="Confirm and save workflow", exact=True).click()
+            page.locator("#use").wait_for(state="visible")
+            browser.close()
+        saved = list((root / "runs/dashboard").glob("*/capability.json"))
+        assert len(saved) == 1
+        data = json.loads(saved[0].read_text())
+        assert data["schema_version"] == "2.0"
+        assert len(data["inputs"]) == 2
+        assert data["steps"][-1]["verify_parameter"] == data["inputs"][1]["key"]
+        assert "543.21" not in saved[0].read_text()
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join()
+
+
+def test_update_discovery_asks_for_missing_amount(tmp_path):
+    manager = Dashboard(fixture_root(tmp_path))
+    run_id = manager.start(
+        RunRequest(mode="discover", goal="Change member 12345 savings balance", live=True)
+    )
+    assert manager.runs[run_id]["required_inputs"] == ["new_balance"]
+    with pytest.raises(ValueError):
+        manager.answer(run_id, None, "-1")
+    assert run_id in manager.pending
+    manager.cancel_input(run_id)

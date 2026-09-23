@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.2",
+  "name": "update_savings_balance",
+  "provenance": "hand_authored_fixture",
+  "input_type": "member_id: five-digit string; new_balance: USD decimal string",
+  "output_type": "balance: USD decimal string",
+  "steps": [
+    {
+      "action": "fill",
+      "role": "textbox",
+      "name": "Member ID",
+      "parameter": "member_id",
+      "output": null
+    },
+    {
+      "action": "click",
+      "role": "button",
+      "name": "Search",
+      "parameter": null,
+      "output": null
+    },
+    {
+      "action": "click",
+      "role": "link",
+      "name": "View accounts",
+      "parameter": null,
+      "output": null
+    },
+    {
+      "action": "fill",
+      "role": "textbox",
+      "name": "New savings balance (USD)",
+      "parameter": "new_balance",
+      "output": null
+    },
+    {
+      "action": "click",
+      "role": "button",
+      "name": "Update savings balance",
+      "parameter": null,
+      "output": null
+    },
+    {
+      "action": "read",
+      "role": "status",
+      "name": "Savings balance",
+      "parameter": null,
+      "output": "balance"
+    }
+  ],
+  "checkpoint": "Account details loaded",
+  "recoveries": []
+}

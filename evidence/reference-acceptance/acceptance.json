@@ -1,0 +1,33 @@
+{
+  "artifact": "evidence/gemini-capability-2026-09-18-retry.json",
+  "discovery": "Historical genuine Gemini discovery; not rerun by this script",
+  "execution": "Current local browser replay; no model adapter instantiated",
+  "operator": "Scripted operator callback for the handoff case, not a human recording",
+  "outputs": "Synthetic outputs asserted in memory, omitted from saved evidence",
+  "checks": [
+    {
+      "case": "changed-input",
+      "passed": true,
+      "status": "success",
+      "code": "completed"
+    },
+    {
+      "case": "not-found",
+      "passed": true,
+      "status": "business_outcome",
+      "code": "member_not_found"
+    },
+    {
+      "case": "permission-denied",
+      "passed": true,
+      "status": "failure",
+      "code": "permission_denied"
+    },
+    {
+      "case": "same-session-handoff",
+      "passed": true,
+      "status": "success",
+      "code": "completed"
+    }
+  ]
+}

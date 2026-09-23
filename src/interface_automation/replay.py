@@ -24,6 +24,8 @@ def replay(
     pause_request: Event | None = None,
     action_delay: float = 0,
 ) -> Result:
+    if (capability.name == "update_savings_balance") != (inputs.new_balance is not None):
+        return Result(status="failure", code="workflow_inputs_mismatch").with_details()
     index = 0
     with sync_playwright() as driver:
         try:
@@ -76,7 +78,7 @@ def replay(
                 for rule in surface.learned:
                     if rule not in capability.recoveries:
                         capability.recoveries.append(rule)
-                capability.schema_version = "1.1"
+                capability.schema_version = "1.2" if surface.updating else "1.1"
                 surface.events.append(
                     {"event": "capability_updated", "reason": "verified_human_recovery"}
                 )

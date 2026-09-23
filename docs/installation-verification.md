@@ -1,16 +1,17 @@
 # Installation verification
 
-Verified September 18, 2026 on Windows with Python 3.12.
+Supported setup: a Windows source checkout with Python 3.12. These checks used the machine's package cache and existing Playwright browser files. A fresh download on another machine remains untested.
 
-- Created a separate virtual environment at `tmp/install-check-20260918`, without access to the existing environment's installed packages.
-- Installed all pinned dependencies from `requirements.lock`. Package downloads used the machine's pip cache where available; this was not an empty-cache machine test.
-- Installed the project using the README's editable-install flags. `pip check` reported no broken requirements.
-- Ran the documented Chromium installer successfully. The machine already had Playwright browser files, so this does not prove a first-time browser download on another machine.
-- Replayed the September 18 discovered capability for synthetic member 67890. The result was `completed` with balance `842.10`; no model calls were made. The installation log is retained locally, outside the published demonstration set.
-- Built a normal wheel and inspected its 18 entries. It includes `interface_automation/demo.html` and excludes environment files and run/evidence directories. The wheel build is a packaging check; the documented installation and replay used editable mode.
+| Check | September 18, 2026 result |
+| --- | --- |
+| Separate environment | Installed pinned dependencies in `tmp/install-check-20260918`, without access to the working environment's packages. |
+| Editable install | Used the README flags; `pip check` found no broken requirements. |
+| Chromium setup | Ran the documented installer against existing browser files. |
+| Provider-free replay | Replayed the September 18 discovered artifact for synthetic member 67890; returned `completed` and balance `842.10`. |
+| Wheel inspection | Inspected 18 entries; found `demo.html` and no environment files or run/evidence directories. |
 
-No API credentials were copied into the isolated environment. Existing live-provider evidence was reused as an input artifact. The environment and wheel are ignored temporary outputs, not submission artifacts. No publication occurred.
+The isolated environment used no API credentials. Find its original installation log in local temporary storage; the submission retains the discovered artifact as the reproducible input. Keep the temporary environment and wheel outside Git.
 
-The supported installation remains a source checkout on Windows/Python 3.12. Live discovery resolves its credential file and budget ledger relative to that source checkout; the wheel is not advertised as a standalone installed-service deployment.
+On September 20, an offline wheel build included both `dashboard.html` and `demo.html`, excluded environment files and runtime/evidence directories, and the installed environment passed `pip check`. This was a packaging check; the documented execution used a source checkout. Live discovery resolves credentials and the budget ledger relative to that checkout.
 
-Packaging rechecked September 20, 2026 with an offline wheel build from the current checkout. Both dashboard.html and demo.html are included; environment files, runtime output, and evidence directories are excluded. The installed environment passes pip check. This does not replace the separate-environment installation check above or claim a fresh download test.
+For checks against the current code, run the [acceptance script](../scripts/verify_submission.py) and tests listed in the [README](../README.md#verification-and-design).

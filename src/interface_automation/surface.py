@@ -3,13 +3,15 @@
 import json
 import re
 from collections.abc import Callable
+from decimal import Decimal
 from pathlib import Path
 from typing import Literal
 from urllib.parse import urlsplit
 
 from playwright.sync_api import Error, Page, Route
 
-from .policy import Policy
+from .demo import validate_demo_url
+from .policy import Policy, default_actions
 from .schema import Inputs, RecoveryRule, Result, Step
 
 STEPS = {
@@ -17,6 +19,16 @@ STEPS = {
     "search": Step(action="click", role="button", name="Search"),
     "open_accounts": Step(action="click", role="link", name="View accounts"),
     "read_balance": Step(action="read", role="status", name="Savings balance", output="balance"),
+}
+UPDATE_STEPS = {
+    "fill_member": STEPS["fill_member"],
+    "search": STEPS["search"],
+    "open_accounts": STEPS["open_accounts"],
+    "fill_balance": Step(
+        action="fill", role="textbox", name="New savings balance (USD)", parameter="new_balance"
+    ),
+    "update_balance": Step(action="click", role="button", name="Update savings balance"),
+    "read_balance": STEPS["read_balance"],
 }
 SCENARIOS = ("normal", "slow", "permission_denied", "session_expired", "manual_review")
 CHECKPOINT = "Account details loaded"
@@ -57,7 +69,14 @@ class Surface:
         self.outputs: dict[str, str] = {}
         self.learned: list[RecoveryRule] = []
         self.recordable = True
-        self.policy = policy or Policy()
+        self.updating = inputs.new_balance is not None
+        self.catalog = UPDATE_STEPS if self.updating else STEPS
+        self.updated = False
+        self.policy = policy or (
+            Policy(allowed_actions=[*default_actions(), "fill_balance", "update_balance"])
+            if self.updating
+            else Policy()
+        )
         page.set_default_timeout(3000)
         page.context.route("**/*", self.guard)
 
@@ -68,6 +87,11 @@ class Surface:
             route.abort()
 
     def open(self, scenario: str) -> None:
+        if self.updating:
+            try:
+                validate_demo_url(self.base_url)
+            except ValueError:
+                raise Stopped(Result(status="failure", code="target_blocked")) from None
         if not self.permits_url(self.base_url) or scenario not in SCENARIOS:
             raise Stopped(Result(status="failure", code="target_blocked"))
         self.page.goto(f"{self.base_url}/?scenario={scenario}")
@@ -79,7 +103,7 @@ class Surface:
         # Fixed vocabulary observed from the synthetic UI; no account values or names.
         visible = [
             key
-            for key, step in STEPS.items()
+            for key, step in self.catalog.items()
             if self.page.get_by_role(step.role, name=step.name, exact=True).is_visible()
             and self.page.get_by_role(step.role, name=step.name, exact=True).is_enabled()
         ]
@@ -93,6 +117,18 @@ class Surface:
         available: list[str] = [
             action for action in visible if action in self.policy.allowed_actions
         ]
+        amount_matches = False
+        if self.updating:
+            amount = self.page.get_by_role("textbox", name="New savings balance (USD)", exact=True)
+            amount_matches = amount.is_visible() and amount.input_value() == self.inputs.new_balance
+            if not self.updated:
+                available = [
+                    action
+                    for action in available
+                    if action != "read_balance" and (action != "update_balance" or amount_matches)
+                ]
+            else:
+                available = [action for action in available if action == "read_balance"]
         if checkpoint and "balance" in self.outputs:
             available.append("finish")
         return json.dumps(
@@ -105,6 +141,14 @@ class Surface:
                 "member_input_matches_parameter": filled,
                 "balance_extracted": "balance" in self.outputs,
                 "checkpoint_visible": checkpoint,
+                **(
+                    {
+                        "balance_input_matches_parameter": amount_matches,
+                        "balance_updated": self.updated,
+                    }
+                    if self.updating
+                    else {}
+                ),
             }
         )
 
@@ -113,13 +157,46 @@ class Surface:
             raise Stopped(Result(status="failure", code="human_owns_session"))
         if not self.permits_url(self.page.url):
             raise Stopped(Result(status="failure", code="target_blocked"))
-        if not any(step == STEPS[name] for name in self.policy.allowed_actions):
+        if not any(step == self.catalog.get(name) for name in self.policy.allowed_actions):
             raise Stopped(Result(status="failure", code="action_blocked"))
+        if self.updating and self.updated and step != STEPS["read_balance"]:
+            raise Stopped(Result(status="failure", code="update_already_applied"))
         target = self.page.get_by_role(step.role, name=step.name, exact=True)
         if step.action == "fill":
-            target.fill(self.inputs.member_id)
+            value = (
+                self.inputs.new_balance
+                if step.parameter == "new_balance"
+                else self.inputs.member_id
+            )
+            assert value is not None
+            target.fill(value)
         elif step.action == "click":
-            target.click()
+            if step == UPDATE_STEPS["update_balance"] and (
+                self.restored_state() != "details"
+                or self.page.get_by_role(
+                    "textbox", name="New savings balance (USD)", exact=True
+                ).input_value()
+                != self.inputs.new_balance
+            ):
+                raise Stopped(Result(status="failure", code="update_precondition_failed"))
+            if step == UPDATE_STEPS["update_balance"]:
+                try:
+                    target.click()
+                    self.page.get_by_role("status", name="Balance update", exact=True).get_by_text(
+                        "Savings balance updated.", exact=True
+                    ).wait_for()
+                except Error:
+                    raise Stopped(
+                        Result(
+                            status="failure",
+                            code="update_result_unknown",
+                            observed="Update outcome could not be verified; the write will not be retried",
+                        )
+                    ) from None
+                self.updated = True
+                self.outputs.clear()
+            else:
+                target.click()
             if step.name == "Search":
                 self.page.get_by_text(
                     re.compile(
@@ -143,10 +220,17 @@ class Surface:
                             )
                         )
         else:
+            if self.updating and not self.updated:
+                raise Stopped(Result(status="failure", code="update_not_applied"))
             value = target.inner_text().strip()
             if not re.fullmatch(r"[0-9]+\.[0-9]{2}", value):
                 raise Stopped(Result(status="failure", code="output_invalid"))
             self.outputs["balance"] = value
+            if self.updating and (
+                self.restored_state() != "details"
+                or Decimal(value) != Decimal(self.inputs.new_balance or "0")
+            ):
+                raise Stopped(Result(status="failure", code="update_verification_failed"))
         self.events.append({"event": "action", "action": step.action, "control": step.name})
 
     def needs_review(self) -> bool:
@@ -212,7 +296,7 @@ class Surface:
         return None
 
     def satisfied(self, action: Step) -> bool:
-        if not any(action == STEPS[name] for name in self.policy.allowed_actions):
+        if not any(action == self.catalog.get(name) for name in self.policy.allowed_actions):
             raise Stopped(Result(status="failure", code="action_blocked"))
         state = self.restored_state()
         return (action == STEPS["search"] and state in {"results", "details"}) or (
@@ -331,6 +415,8 @@ class Surface:
         return True
 
     def finish(self, checkpoint: str = CHECKPOINT) -> Result:
+        if self.updating and not self.updated:
+            raise Stopped(Result(status="failure", code="update_not_applied"))
         self.page.get_by_text(checkpoint, exact=True).wait_for()
         if "balance" not in self.outputs:
             raise Stopped(Result(status="failure", code="output_missing"))

@@ -11,6 +11,44 @@ from interface_automation.provider import Budget
 from interface_automation.surface import Stopped
 
 
+@pytest.mark.parametrize("model_name", ["gemini-3.5-flash", "gemini-2.5-flash"])
+def test_page_decision_uses_shared_transport_without_bank_action_catalog(
+    tmp_path, monkeypatch, model_name
+):
+    from interface_automation.page_workflow import PageDecision
+
+    monkeypatch.setenv("AI_API_KEY", "test-key")
+    payloads = []
+
+    def transport(request, timeout):
+        payloads.append(json.loads(request.data))
+        return io.BytesIO(
+            json.dumps(
+                {
+                    "candidates": [
+                        {
+                            "finishReason": "STOP",
+                            "content": {
+                                "parts": [
+                                    {"text": '{"action":"fill","target":"c0","value":"PK-123"}'}
+                                ]
+                            },
+                        }
+                    ]
+                }
+            ).encode()
+        )
+
+    monkeypatch.setattr("interface_automation.gemini.urlopen", transport)
+    model = GeminiDecider(model_name, Budget(tmp_path / "budget.json"), tmp_path / ".env")
+    result = model.structured("Choose an observed control", '{"goal":"Find PK-123"}', PageDecision)
+    assert result.target == "c0" and result.value == "PK-123"
+    schema = payloads[0]["generationConfig"]["responseJsonSchema"]
+    assert schema["properties"]["action"]["enum"] == ["fill", "click", "read", "ask"]
+    assert "member" not in json.dumps(payloads)
+    assert "PK-123" not in json.dumps(model.events)
+
+
 @pytest.fixture(autouse=True)
 def fake_clock(monkeypatch: pytest.MonkeyPatch) -> list[float]:
     now = [0.0]
@@ -87,7 +125,7 @@ def test_quota_failure_is_sanitized(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     assert "test-key" not in json.dumps(decider.events)
 
 
-@pytest.mark.parametrize("model", ["gemini-2.5-flash", "gemini-2.0-flash"])
+@pytest.mark.parametrize("model", ["gemini-3.5-flash", "gemini-2.5-flash", "gemini-2.0-flash"])
 def test_gemini_uses_named_key_and_validates_output(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, model: str
 ) -> None:
@@ -105,7 +143,10 @@ def test_gemini_uses_named_key_and_validates_output(
         assert request.data is not None and timeout == 45
         payload = json.loads(request.data)
         assert payload["generationConfig"]["responseMimeType"] == "application/json"
-        if model == "gemini-2.5-flash":
+        if model == "gemini-3.5-flash":
+            assert payload["generationConfig"]["thinkingConfig"] == {"thinkingLevel": "LOW"}
+            assert "responseJsonSchema" in payload["generationConfig"]
+        elif model == "gemini-2.5-flash":
             assert payload["generationConfig"]["thinkingConfig"]["thinkingBudget"] == 0
         else:
             assert "thinkingConfig" not in payload["generationConfig"]
